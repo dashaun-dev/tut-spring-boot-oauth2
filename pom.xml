@@ -15,6 +15,9 @@
 		<module>two-providers</module>
 		<module>custom-error</module>
 	</modules>
+    <properties>
+        <maven.compiler.release>11</maven.compiler.release>
+    </properties>
 	
     <build>
         <plugins>
