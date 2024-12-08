@@ -18,14 +18,13 @@ package com.example;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -37,9 +36,11 @@ import org.springframework.security.oauth2.client.web.reactive.function.client.S
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -49,7 +50,7 @@ import static org.springframework.security.oauth2.client.web.reactive.function.c
 
 @SpringBootApplication
 @Controller
-public class SocialApplication extends WebSecurityConfigurerAdapter {
+public class SocialApplication {
 
 	@Bean
 	public WebClient rest(ClientRegistrationRepository clients, OAuth2AuthorizedClientRepository authz) {
@@ -86,13 +87,13 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 		};
 	}
 
-	@GetMapping("/user")
+	@GetMapping({"/user", "/user/"})
 	@ResponseBody
 	public Map<String, Object> user(@AuthenticationPrincipal OAuth2User principal) {
 		return Collections.singletonMap("name", principal.getAttribute("name"));
 	}
 
-	@GetMapping("/error")
+	@GetMapping({"/error", "/error/"})
 	@ResponseBody
 	public String error(HttpServletRequest request) {
 		String message = (String) request.getSession().getAttribute("error.message");
@@ -100,14 +101,14 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 		return message;
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		SimpleUrlAuthenticationFailureHandler handler = new SimpleUrlAuthenticationFailureHandler("/");
 
 		// @formatter:off
-		http.antMatcher("/**")
-			.authorizeRequests(a -> a
-				.antMatchers("/", "/error", "/webjars/**").permitAll()
+		http.securityMatcher(AntPathRequestMatcher.antMatcher("/**"))
+			.authorizeHttpRequests(a -> a
+				.requestMatchers(AntPathRequestMatcher.antMatcher("/"), AntPathRequestMatcher.antMatcher("/error"), AntPathRequestMatcher.antMatcher("/webjars/**")).permitAll()
 				.anyRequest().authenticated()
 			)
 			.exceptionHandling(e -> e
@@ -126,6 +127,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 				})
 			);
 		// @formatter:on
+		return http.build();
 	}
 
 	public static void main(String[] args) {
