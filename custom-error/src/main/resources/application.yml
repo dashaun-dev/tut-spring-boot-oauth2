@@ -9,6 +9,9 @@ spring:
           google:
             client-id: your-google-client-id
             client-secret: your-google-client-secret
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
 
 # logging:
 #  level:

@@ -6,3 +6,6 @@ spring:
           github:
             client-id: your-github-client-id
             client-secret: your-github-client-secret
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
